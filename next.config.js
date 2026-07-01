@@ -11,6 +11,13 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  typescript: {
+    tsconfigPath: './tsconfig.json',
+  },
+  // Vercel optimizations
+  experimental: {
+    optimizePackageImports: ['@prisma/client'],
+  },
 };
 
 module.exports = withPWA(nextConfig);
