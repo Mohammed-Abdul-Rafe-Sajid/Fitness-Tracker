@@ -14,9 +14,9 @@ const nextConfig = {
   typescript: {
     tsconfigPath: './tsconfig.json',
   },
-  // Vercel optimizations
   experimental: {
     optimizePackageImports: ['@prisma/client'],
+    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
   },
 };
 
