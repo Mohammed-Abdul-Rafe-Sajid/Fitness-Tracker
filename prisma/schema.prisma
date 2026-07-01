@@ -1,0 +1,110 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  passwordHash String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  logs         DailyHabitLog[]
+  stats        UserStats?
+  achievements Achievement[]
+  settings     Settings?
+}
+
+// Configurable habit definitions. Seeded with exactly 2 rows for v1.
+// isActive allows future habits to be added/retired without deleting history.
+model Habit {
+  id          String   @id @default(cuid())
+  key         String   @unique   // "gym" | "no_maida" — stable machine key
+  name        String             // "Went to Gym"
+  question    String             // "Did you go to the gym today?"
+  emoji       String             // "🏋️"
+  colorHex    String             // used for heatmap single-habit color reference
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  logs        DailyHabitLog[]
+}
+
+// One row per (user, habit, date). date is stored as an ISO date string
+// (YYYY-MM-DD) representing the user's LOCAL calendar day at time of save,
+// not a UTC timestamp — this avoids timezone drift (see §15.3).
+model DailyHabitLog {
+  id        String   @id @default(cuid())
+  userId    String
+  habitId   String
+  date      String   // "YYYY-MM-DD", local date
+  completed Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, habitId, date])   // prevents duplicate submissions
+  @@index([userId, date])
+}
+
+// Denormalized, recomputed cache — avoids recalculating streaks/points
+// from scratch on every dashboard load. Rebuilt in full on any edit
+// within the 7-day window (see §5.5) or on import.
+model UserStats {
+  id                     String   @id @default(cuid())
+  userId                 String   @unique
+  lifetimePoints         Int      @default(0)
+  gymCurrentStreak       Int      @default(0)
+  gymMaxStreak           Int      @default(0)
+  maidaCurrentStreak     Int      @default(0)
+  maidaMaxStreak         Int      @default(0)
+  combinedCurrentStreak  Int      @default(0)
+  combinedMaxStreak      Int      @default(0)
+  totalActiveDays        Int      @default(0)   // days with at least one log entry
+  perfectDays            Int      @default(0)   // days with both habits completed
+  updatedAt              DateTime @updatedAt
+
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Achievement {
+  id         String   @id @default(cuid())
+  userId     String
+  badgeKey   String   // e.g. "first_step", "seven_day_warrior"
+  earnedAt   DateTime @default(now())
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeKey])
+}
+
+model Settings {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  theme              String   @default("system")  // "light" | "dark" | "system"
+  reminderTime        String?  // "19:00" | "20:00" | "21:00" | null (off)
+  updatedAt           DateTime @updatedAt
+
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Optional explicit session record for audit/multi-device visibility.
+// Not required for auth to function (JWT is self-contained) but included
+// so "active sessions" could be listed in future without a schema change.
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   // sha256 of the JWT, for revocation lookups
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime
+
+  @@index([userId])
+}
