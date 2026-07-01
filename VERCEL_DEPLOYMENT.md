@@ -43,3 +43,20 @@ On your Vercel Dashboard for the fitness project:
 2. Ensure DATABASE_URL is properly set
 3. Run `npm run build` locally to test: `npm run build`
 4. If local build works, the Vercel build should too
+
+## Using Prisma Data Proxy (recommended)
+
+If you're deploying to serverless platforms like Vercel and Prisma's query engine
+is failing to load, Prisma Data Proxy removes the need for a local engine.
+
+1. Enable Data Proxy in your Prisma Cloud/Console and create a Data Proxy service.
+2. Copy the Data Proxy URL (a special `prisma://...` URL).
+3. In Vercel Settings → Environment Variables, add:
+   - `PRISMA_DATA_PROXY_URL` = `<your-data-proxy-url>`
+   - Keep `DATABASE_URL` pointing to your Postgres database (used for migrations locally)
+4. Redeploy your project on Vercel.
+
+Notes:
+- Prisma Data Proxy is the most reliable option for serverless deployments.
+- When using Data Proxy you do not need the native query engine binaries in the bundle.
+- Data Proxy may have additional costs; check Prisma pricing.
