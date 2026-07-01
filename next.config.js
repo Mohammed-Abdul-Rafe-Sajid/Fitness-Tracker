@@ -15,7 +15,6 @@ const nextConfig = {
     tsconfigPath: './tsconfig.json',
   },
   experimental: {
-    optimizePackageImports: ['@prisma/client'],
     serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
   },
 };
