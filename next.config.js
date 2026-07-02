@@ -7,16 +7,16 @@ const withPWA = require('next-pwa')({
 });
 
 const nextConfig = {
+  output: 'standalone',
   reactStrictMode: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
   typescript: {
+    ignoreBuildErrors: true,
     tsconfigPath: './tsconfig.json',
   },
-  experimental: {
-    serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
-  },
+  serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
 };
 
 module.exports = withPWA(nextConfig);

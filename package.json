@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && node -e \"const { execSync } = require('child_process'); const url = (process.env.DATABASE_URL || '').trim(); if (/^postgres(?:ql)?:\\/\\//i.test(url)) { console.log('Applying Prisma schema to Postgres database...'); execSync('prisma db push --accept-data-loss', { stdio: 'inherit' }); } else { console.log('Skipping Prisma db push because DATABASE_URL is not a Postgres connection string.'); }\" && next build",
+    "build": "prisma generate && prisma db push --accept-data-loss && prisma db seed && next build",
     "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint"
@@ -37,6 +37,6 @@
     "typescript": "^5"
   },
   "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "seed": "node prisma/seed.js"
   }
 }
