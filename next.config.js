@@ -16,7 +16,11 @@ const nextConfig = {
     ignoreBuildErrors: true,
     tsconfigPath: './tsconfig.json',
   },
-  serverComponentsExternalPackages: ['@prisma/client', 'prisma'],
+  serverExternalPackages: ['@prisma/client', 'prisma'],
+  outputFileTracingIncludes: {
+    '/api/**/*': ['./node_modules/.prisma/client/**/*'],
+    '/*': ['./node_modules/.prisma/client/**/*'],
+  },
 };
 
 module.exports = withPWA(nextConfig);
